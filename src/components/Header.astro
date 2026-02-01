@@ -1,4 +1,7 @@
 ---
+const base = import.meta.env.BASE_URL; // ✅ 常に '/' or '/repo/' になる
+const join = (p) => new URL(p, `http://x${base}`).pathname; // base考慮で結合
+
 const nav = [
   ["Top", "/"],
   ["About", "/about"],
@@ -12,20 +15,20 @@ const nav = [
 ---
 <header class="container" style="padding:18px 0;">
   <div class="card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-    <a href={Astro.base} style="display:flex; align-items:center; gap:10px; font-weight:900;">
+    <a href={join("/")} style="display:flex; align-items:center; gap:10px; font-weight:900;">
       <span class="pill pink">MilkPop</span>
       <span class="small">Official</span>
     </a>
 
     <nav style="display:none; gap:14px; flex-wrap:wrap;" class="nav">
       {nav.map(([label, href]) => (
-        <a href={`${Astro.base.replace(/\/$/, "")}${href}`} class="small" style="font-weight:800; padding:6px 8px; border-radius:10px;">
+        <a href={join(href)} class="small" style="font-weight:800; padding:6px 8px; border-radius:10px;">
           {label}
         </a>
       ))}
     </nav>
 
-    <a class="btn" href={`${Astro.base}contact`} style="padding:10px 14px;">Contact</a>
+    <a class="btn" href={join("/contact")} style="padding:10px 14px;">Contact</a>
   </div>
 
   <style>
