@@ -1,0 +1,20 @@
+---
+import socials from "../data/socials.json";
+---
+<footer class="section">
+  <div class="container">
+    <div class="card" style="padding:18px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div style="font-weight:900;">MilkPop</div>
+          <div class="small">© {new Date().getFullYear()} MilkPop</div>
+        </div>
+        <div class="pills">
+          {socials.map((s) => (
+            <a class={`pill ${s.color}`} href={s.url} target="_blank" rel="noreferrer">{s.label}</a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
