@@ -1,171 +1,202 @@
----
-import BaseLayout from "../layouts/BaseLayout.astro";
-import SectionTitle from "../components/SectionTitle.astro";
-import YoutubeLite from "../components/YoutubeLite.astro";
+<section class="heroCover">
+  <div class="heroInner">
+    <p class="heroOverline">MilkPop Channel — Reading Café Edition</p>
+    <h1 class="heroTitle">物語を読む場所</h1>
+    <p class="heroLead">
+      静かな灯りと、紙の温度。<br/>
+      ここで出会うのは、物語を生きる者たち。
+    </p>
 
-import latest from "../data/latest.json";
-import lives from "../data/live.json";
-import videos from "../data/videos.json";
-
-// ✅ base パス対応ユーティリティ
-const base = import.meta.env.BASE_URL;
-const join = (p) => new URL(p, `http://x${base}`).pathname;
-
-// 仮ニュース（後で content/news から引く想定）
-const news = [
-  { title: "新曲MVを公開しました（仮）", date: "2026-02-01", tag: "MV", href: join("/news") },
-  { title: "ライブ情報を更新しました（仮）", date: "2026-02-10", tag: "Live", href: join("/live") },
-  { title: "新アーティスト写真公開（仮）", date: "2026-02-15", tag: "Media", href: join("/news") }
-];
----
-<BaseLayout
-  title="MilkPop | Official"
-  description="MilkPop Official Website"
->
-
-  <!-- HERO -->
-  <section class="container" style="padding:18px 0 8px;">
-    <div class="card" style="padding:18px; display:grid; gap:16px;">
-      <div class="grid cols-2">
-        <div>
-          <div class="pills" style="margin-bottom:10px;">
-            <span class="pill pink">Pop</span>
-            <span class="pill sky">Colorful</span>
-            <span class="pill lemon">Bright</span>
-            <span class="pill mint">Music</span>
-          </div>
-
-          <h1 style="margin:0; font-size:38px; font-weight:1000; line-height:1.1;">
-            Pastel Pop,<br />
-            Make Your Day Shine.
-          </h1>
-
-          <p class="small" style="margin:12px 0 18px;">
-            MilkPopの世界へようこそ。<br />
-            最新MV・ライブ・ニュースをまとめてチェック。
-          </p>
-
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <a
-              class="btn"
-              href={`https://www.youtube.com/watch?v=${latest.youtubeId}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Latest MV
-            </a>
-
-            <a class="btn" href={join("/discography")}>
-              Listen
-            </a>
-
-            <a class="btn" href={join("/live")}>
-              Live
-            </a>
-          </div>
-        </div>
-
-        <div>
-          <img
-            src={join("/img/kv.jpg")}
-            alt="Key Visual (placeholder)"
-            style="
-              border-radius:20px;
-              border:1px solid var(--line);
-              box-shadow:var(--shadow);
-              aspect-ratio:16/10;
-              object-fit:cover;
-            "
-          />
-        </div>
-      </div>
+    <div class="heroActions">
+      <a class="btnPrimary" href="/people">Open the book</a>
+      <a class="btnGhost" href="#toc">Table of contents</a>
     </div>
-  </section>
 
-  <!-- LATEST MV -->
-  <section class="section">
-    <div class="container">
-      <SectionTitle en="LATEST" ja="最新MV" color="sky" />
-      <YoutubeLite id={latest.youtubeId} title={latest.title} />
+    <div class="turnPage">
+      <span class="turnText">Turn the page</span>
+      <span class="turnArrow">↓</span>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- NEWS -->
-  <section class="section">
-    <div class="container">
-      <SectionTitle en="NEWS" ja="お知らせ" color="pink" />
-
-      <div class="grid cols-3">
-        {news.map((n, i) => (
-          <a class="card" href={n.href} style="padding:14px;">
-            <div class="pills" style="margin-bottom:10px;">
-              <span class={`pill ${i % 2 === 0 ? "lemon" : "mint"}`}>
-                {n.tag}
-              </span>
-              <span class="small">{n.date}</span>
-            </div>
-
-            <div style="font-weight:900; line-height:1.3;">
-              {n.title}
-            </div>
-          </a>
-        ))}
-      </div>
+<section id="toc" class="toc">
+  <div class="tocInner">
+    <h2 class="tocTitle">目次</h2>
+    <div class="tocGrid">
+      <a class="tocCard" href="/people">
+        <div class="tocNo">Chapter 01</div>
+        <div class="tocName">言葉を編む人</div>
+        <div class="tocHint">静かな余白 / 低い温度</div>
+      </a>
+      <a class="tocCard" href="/people">
+        <div class="tocNo">Chapter 02</div>
+        <div class="tocName">影を選ぶ人</div>
+        <div class="tocHint">赤い余韻 / 近づくほど遠い</div>
+      </a>
+      <a class="tocCard" href="/people">
+        <div class="tocNo">Chapter 03</div>
+        <div class="tocName">眠りの外側にいる人</div>
+        <div class="tocHint">淡い青 / 祈りのような声</div>
+      </a>
     </div>
-  </section>
 
-  <!-- LIVE -->
-  <section class="section">
-    <div class="container">
-      <SectionTitle en="LIVE" ja="ライブ / スケジュール" color="mint" />
+    <div class="paperLine"></div>
 
-      <div class="grid cols-2">
-        {lives.slice(0, 2).map((l) => (
-          <a
-            class="card"
-            href={l.url}
-            target="_blank"
-            rel="noreferrer"
-            style="padding:16px;"
-          >
-            <div class="pills" style="margin-bottom:10px;">
-              <span class="pill mint">Next</span>
-              <span class="small">{l.date}</span>
-            </div>
-
-            <div style="font-weight:1000; font-size:18px;">
-              {l.title}
-            </div>
-
-            <div class="small">{l.venue}</div>
-          </a>
-        ))}
-
-        <div class="card" style="padding:16px;">
-          <div style="font-weight:1000;">もっと見る</div>
-          <p class="small" style="margin:8px 0 0;">
-            過去公演も含めて一覧表示します。
-          </p>
-          <hr class="sep" />
-          <a class="btn" href={join("/live")}>
-            Go to Live
-          </a>
-        </div>
-      </div>
+    <div class="tocGrid">
+      <a class="tocCard" href="/people">
+        <div class="tocNo">Chapter 04</div>
+        <div class="tocName">順番を壊す人</div>
+        <div class="tocHint">色のノイズ / 逸れたリズム</div>
+      </a>
+      <a class="tocCard" href="/people">
+        <div class="tocNo">Chapter 05</div>
+        <div class="tocName">静かに支える人</div>
+        <div class="tocHint">乾いた金 / きっちりした線</div>
+      </a>
+      <a class="tocCard" href="/people">
+        <div class="tocNo">Chapter 06</div>
+        <div class="tocName">終わりを知る人</div>
+        <div class="tocHint">甘い影 / 近づくほど冷える</div>
+      </a>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- VIDEOS -->
-  <section class="section">
-    <div class="container">
-      <SectionTitle en="VIDEOS" ja="動画" color="lemon" />
+<style>
+  :global(body){ background:#070709; color:#e9e9ef; }
 
-      <div class="grid cols-3">
-        {videos.slice(0, 3).map((v) => (
-          <YoutubeLite id={v.youtubeId} title={v.title} />
-        ))}
-      </div>
-    </div>
-  </section>
+  .heroCover{
+    min-height: 86vh;
+    display:flex;
+    align-items:center;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    background:
+      radial-gradient(1200px 600px at 50% 20%, rgba(243,208,138,.10), transparent 60%),
+      radial-gradient(900px 500px at 10% 80%, rgba(255,255,255,.06), transparent 65%),
+      linear-gradient(180deg, rgba(7,7,9,1), rgba(7,7,9,.98));
+  }
+  .heroInner{
+    width:min(1100px, calc(100% - 40px));
+    margin:0 auto;
+    padding: 48px 0 28px;
+    text-align:center;
+  }
+  .heroOverline{
+    margin:0 0 12px;
+    font-size:11px;
+    letter-spacing:.18em;
+    color: rgba(233,233,239,.60);
+  }
+  .heroTitle{
+    margin:0;
+    font-weight: 900;
+    letter-spacing:.18em;
+    font-size: clamp(26px, 4vw, 44px);
+  }
+  .heroLead{
+    margin: 14px auto 0;
+    max-width: 680px;
+    color: rgba(233,233,239,.74);
+    font-size: 13px;
+    letter-spacing: .10em;
+    line-height: 1.9;
+  }
+  .heroActions{
+    margin-top: 22px;
+    display:flex;
+    gap: 12px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .btnPrimary{
+    padding: 10px 14px;
+    font-size: 12px;
+    letter-spacing: .14em;
+    font-weight: 900;
+    border: 1px solid rgba(243,208,138,.55);
+    color: rgba(243,208,138,.95);
+    background: rgba(0,0,0,.25);
+  }
+  .btnGhost{
+    padding: 10px 14px;
+    font-size: 12px;
+    letter-spacing: .14em;
+    color: rgba(233,233,239,.72);
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.02);
+  }
+  .btnPrimary:hover,.btnGhost:hover{ filter: brightness(1.08); }
 
-</BaseLayout>
+  .turnPage{
+    margin-top: 28px;
+    display:flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items:center;
+    color: rgba(233,233,239,.55);
+    font-size: 11px;
+    letter-spacing:.16em;
+  }
+  .turnArrow{
+    display:inline-block;
+    animation: bob 1.4s ease-in-out infinite;
+  }
+  @keyframes bob{
+    0%,100%{ transform: translateY(0); opacity:.7; }
+    50%{ transform: translateY(6px); opacity:1; }
+  }
+
+  .toc{
+    padding: 42px 0 10px;
+  }
+  .tocInner{
+    width:min(1200px, calc(100% - 40px));
+    margin:0 auto;
+  }
+  .tocTitle{
+    margin: 0 0 18px;
+    text-align:center;
+    font-weight: 900;
+    letter-spacing:.18em;
+    font-size: 18px;
+  }
+  .tocGrid{
+    display:grid;
+    gap: 18px;
+    grid-template-columns: 1fr;
+  }
+  @media(min-width:820px){
+    .tocGrid{ grid-template-columns: repeat(3, 1fr); }
+  }
+  .tocCard{
+    border: 1px solid rgba(255,255,255,.14);
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+    padding: 16px 16px 14px;
+    display:block;
+  }
+  .tocNo{
+    font-size: 11px;
+    letter-spacing:.14em;
+    color: rgba(243,208,138,.9);
+    font-weight: 900;
+  }
+  .tocName{
+    margin-top: 8px;
+    font-size: 13px;
+    letter-spacing:.10em;
+    font-weight: 900;
+    color: rgba(233,233,239,.92);
+  }
+  .tocHint{
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.7;
+    letter-spacing:.08em;
+    color: rgba(233,233,239,.64);
+  }
+  .paperLine{
+    height:1px;
+    background: linear-gradient(90deg, transparent, rgba(243,208,138,.25), transparent);
+    margin: 22px 0;
+  }
+</style>
