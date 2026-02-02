@@ -1,0 +1,80 @@
+/* src/styles/readingCafe.css */
+/* ✅ global.css(白)の上から、黒い世界観を上書きする */
+
+:root{
+  --bg:#070709;
+  --text:#e9e9ef;
+
+  /* pastelは消す（必要なら残してもOK） */
+  --card: rgba(0,0,0,.25);
+  --line: rgba(255,255,255,.14);
+  --shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+
+html,body{
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* 背景パステルは無効化 */
+.pastel-bg{ display:none; }
+
+/* リンクの青を消す（強制） */
+a{ color: inherit; }
+
+/* ついでに“本の紙筋”を全ページで薄く入れるなら（軽量） */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    linear-gradient(90deg,
+      rgba(0,0,0,.55) 0%,
+      rgba(0,0,0,.00) 18%,
+      rgba(0,0,0,.00) 82%,
+      rgba(0,0,0,.55) 100%),
+    repeating-linear-gradient(0deg,
+      rgba(255,255,255,.010) 0px,
+      rgba(255,255,255,.010) 1px,
+      rgba(255,255,255,.00) 10px,
+      rgba(255,255,255,.00) 18px);
+  opacity:.9;
+}
+/* =========================
+   強制：白い面をすべて無効化
+========================= */
+
+main,
+.section,
+.container,
+.card {
+  background: transparent !important;
+}
+/* =========================
+   本のページ余白
+========================= */
+main {
+  padding: 80px 0 120px;
+}
+
+.container {
+  max-width: 860px;
+}
+
+/* 見出しを「章タイトル」風に */
+h1, h2 {
+  letter-spacing: .04em;
+  font-weight: 700;
+}
+
+/* 目次リンクを本っぽく */
+a {
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,.25);
+}
+a:hover {
+  border-bottom-color: rgba(255,255,255,.7);
+}
+

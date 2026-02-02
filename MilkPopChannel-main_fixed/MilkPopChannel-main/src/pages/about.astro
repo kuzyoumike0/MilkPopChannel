@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SectionTitle from "../components/SectionTitle.astro";
+---
+<BaseLayout title="About | MilkPop" description="MilkPop concept">
+  <section class="section">
+    <div class="container">
+      <SectionTitle en="ABOUT" ja="コンセプト" color="pink" />
+      <div class="card" style="padding:18px;">
+        <p style="margin:0; font-weight:900; font-size:18px;">“日常に、パステルのブースト。”</p>
+        <p class="small">明るいポップの中に、少しだけ切なさ。カラフルで前向きになれる音楽を。</p>
+        <hr class="sep" />
+        <div class="pills">
+          <span class="pill pink">Pop</span>
+          <span class="pill sky">Colorful</span>
+          <span class="pill lemon">Hope</span>
+          <span class="pill mint">Glitter</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,6 @@
+[
+  { "label": "YouTube", "url": "https://www.youtube.com/", "color": "sky" },
+  { "label": "X", "url": "https://x.com/", "color": "pink" },
+  { "label": "Instagram", "url": "https://instagram.com/", "color": "lemon" },
+  { "label": "TikTok", "url": "https://tiktok.com/", "color": "mint" }
+]

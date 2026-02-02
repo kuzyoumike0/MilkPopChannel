@@ -1,0 +1,180 @@
+:root{
+  --bg:#fff;
+  --text:#1f2430;
+
+  /* pastel colors */
+  --pink:#ff7fb4;
+  --sky:#6fc7ff;
+  --lemon:#ffd85a;
+  --mint:#70e6c3;
+
+  --card:#ffffffcc;
+  --line:#e9edf4;
+  --shadow: 0 14px 40px rgba(20,30,60,.10);
+  --radius: 22px;
+  --radius2: 16px;
+
+  --max: 1100px;
+  --pad: 18px;
+  --font:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    "Hiragino Sans",
+    "Noto Sans JP",
+    "Yu Gothic",
+    sans-serif;
+}
+
+/* ===== Reset / Base ===== */
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font);
+}
+
+a{
+  color:inherit;
+  text-decoration:none;
+}
+
+img{
+  max-width:100%;
+  display:block;
+}
+
+/* ===== Layout ===== */
+.container{
+  width:min(var(--max), calc(100% - var(--pad) * 2));
+  margin:0 auto;
+}
+
+.section{
+  padding:42px 0;
+}
+
+/* ===== Background (pastel) ===== */
+.pastel-bg{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(
+      600px 400px at 12% 12%,
+      color-mix(in oklab, var(--pink) 35%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      520px 360px at 90% 18%,
+      color-mix(in oklab, var(--sky) 35%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      520px 360px at 18% 92%,
+      color-mix(in oklab, var(--mint) 35%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      640px 420px at 86% 90%,
+      color-mix(in oklab, var(--lemon) 35%, transparent) 0%,
+      transparent 60%
+    );
+}
+
+/* ===== Grid ===== */
+.grid{
+  display:grid;
+  gap:16px;
+}
+
+@media (min-width:840px){
+  .grid.cols-2{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .grid.cols-3{
+    grid-template-columns:repeat(3,1fr);
+  }
+  .grid.cols-4{
+    grid-template-columns:repeat(4,1fr);
+  }
+}
+
+/* ===== Card ===== */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+/* ===== Button ===== */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:12px 16px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-weight:800;
+  box-shadow:0 10px 26px rgba(20,30,60,.10);
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 34px rgba(20,30,60,.14);
+}
+
+/* ===== Pills ===== */
+.pills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.pill{
+  padding:6px 10px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:12px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+
+.pill.pink{
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--pink) 30%, transparent) inset;
+}
+.pill.sky{
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--sky) 30%, transparent) inset;
+}
+.pill.lemon{
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--lemon) 30%, transparent) inset;
+}
+.pill.mint{
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--mint) 30%, transparent) inset;
+}
+
+/* ===== Utility ===== */
+.small{
+  font-size:13px;
+  opacity:.85;
+}
+
+hr.sep{
+  border:none;
+  border-top:1px solid var(--line);
+  margin:18px 0;
+}
