@@ -1,46 +1,49 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-const base = import.meta.env.BASE_URL;
-const join = (p) => new URL(p, `http://x${base}`).pathname;
-
-// 目次（必要なら文言だけ差し替え）
 const chapters = [
-  { no: "Chapter 01", name: "言葉を編む人", hint: "静かな余白 / 低い温度", href: "/people" },
-  { no: "Chapter 02", name: "影を選ぶ人", hint: "赤い余韻 / 近づくほど遠い", href: "/people" },
-  { no: "Chapter 03", name: "眠りの外側にいる人", hint: "淡い青 / 祈りのような声", href: "/people" },
-  { no: "Chapter 04", name: "順番を壊す人", hint: "色のノイズ / 逸れたリズム", href: "/people" },
-  { no: "Chapter 05", name: "静かに支える人", hint: "乾いた金 / きっちりした線", href: "/people" },
-  { no: "Chapter 06", name: "終わりを知る人", hint: "甘い影 / 近づくほど冷える", href: "/people" },
+  { no: "Chapter 01", name: "言葉を編む人", hint: "静かな余白 / 低い温度", href: "/people#p01" },
+  { no: "Chapter 02", name: "影を選ぶ人", hint: "赤い余韻 / 近づくほど遠い", href: "/people#p02" },
+  { no: "Chapter 03", name: "眠りの外側にいる人", hint: "淡い青 / 祈りのような声", href: "/people#p03" },
+  { no: "Chapter 04", name: "順番を壊す人", hint: "色のノイズ / 逸れたリズム", href: "/people#p04" },
+  { no: "Chapter 05", name: "静かに支える人", hint: "乾いた金 / きっちりした線", href: "/people#p05" },
+  { no: "Chapter 06", name: "終わりを知る人", hint: "甘い影 / 近づくほど冷える", href: "/people#p06" },
+];
+
+// ページHUDの章表示（このページ内3セクション想定）
+const pageChapters = [
+  { page: "01", label: "Cover" },
+  { page: "02", label: "Contents" },
+  { page: "03", label: "Afterword" },
 ];
 ---
 
 <BaseLayout title="物語を読む場所" description="本を読むカフェのような雰囲気のトップページ。">
-  <!-- 右下：ページ番号（スクロールで更新） -->
+  <!-- 右下：ページ番号＋Chapter表示 -->
   <div class="pageHUD" aria-hidden="true">
     <div class="pageHUDInner">
       <span class="pageLabel">Page</span>
       <span id="pageNow" class="pageNow">01</span>
       <span class="pageSlash">/</span>
       <span id="pageTotal" class="pageTotal">03</span>
+      <span class="pageDot">•</span>
+      <span id="pageChap" class="pageChap">Cover</span>
     </div>
   </div>
 
-  <!-- ===== Cover (表紙) ===== -->
-  <section class="cover" data-page="01">
+  <!-- ===== Cover ===== -->
+  <section class="cover" data-page="01" data-chapter="Cover">
     <div class="coverInner">
       <p class="overline">MilkPop Channel — Reading Café Edition</p>
-
       <h1 class="coverTitle">物語を読む場所</h1>
-
       <p class="lead">
         静かな灯りと、紙の温度。<br />
         ここで出会うのは、物語を生きる者たち。
       </p>
 
       <div class="actions">
-        <!-- People導線＝しおり（リボン） -->
-        <a class="bookmark" href="/people">
+        <!-- しおり（リボン） -->
+        <a class="bookmark" href="/people#p01">
           <span class="bookmarkText">Open the book</span>
           <span class="bookmarkSub">— People</span>
         </a>
@@ -55,8 +58,8 @@ const chapters = [
     </div>
   </section>
 
-  <!-- ===== TOC (目次) ===== -->
-  <section id="toc" class="toc" data-page="02">
+  <!-- ===== TOC ===== -->
+  <section id="toc" class="toc" data-page="02" data-chapter="Contents">
     <div class="wrap">
       <h2 class="secTitle">目次</h2>
 
@@ -88,7 +91,7 @@ const chapters = [
           続きをめくるなら、しおりの場所へ。
         </p>
 
-        <a class="bookmark small" href="/people">
+        <a class="bookmark small" href="/people#p01">
           <span class="bookmarkText">Go to People</span>
           <span class="bookmarkSub">— Chapters</span>
         </a>
@@ -96,8 +99,8 @@ const chapters = [
     </div>
   </section>
 
-  <!-- ===== About-ish (余韻) ===== -->
-  <section class="afterword" data-page="03">
+  <!-- ===== Afterword ===== -->
+  <section class="afterword" data-page="03" data-chapter="Afterword">
     <div class="wrap narrow">
       <h2 class="secTitle">あとがき</h2>
 
@@ -114,7 +117,7 @@ const chapters = [
 
       <div class="endRow">
         <a class="ghost" href="#toc">Back to contents</a>
-        <a class="bookmark small" href="/people">
+        <a class="bookmark small" href="/people#p01">
           <span class="bookmarkText">Open the next page</span>
           <span class="bookmarkSub">— People</span>
         </a>
@@ -122,31 +125,38 @@ const chapters = [
     </div>
   </section>
 
-  <!-- ===== Page HUD updater (超軽量) ===== -->
+  <!-- ===== HUD updater（Page + Chapter） ===== -->
   <script is:inline>
     (() => {
       const sections = Array.from(document.querySelectorAll("section[data-page]"));
       const nowEl = document.getElementById("pageNow");
       const totalEl = document.getElementById("pageTotal");
-
-      if (!sections.length || !nowEl || !totalEl) return;
+      const chapEl = document.getElementById("pageChap");
+      if (!sections.length || !nowEl || !totalEl || !chapEl) return;
 
       totalEl.textContent = String(sections.length).padStart(2, "0");
 
-      const setNow = (n) => { nowEl.textContent = String(n).padStart(2, "0"); };
+      const setNow = (idx) => {
+        const n = idx + 1;
+        nowEl.textContent = String(n).padStart(2, "0");
+        chapEl.textContent = sections[idx].dataset.chapter || "";
+      };
 
-      // 画面中央に最も近い section を現在ページにする
       const update = () => {
         const mid = window.innerHeight * 0.5;
-        let best = { idx: 0, dist: Infinity };
+        let bestIdx = 0;
+        let bestDist = Infinity;
 
         for (let i = 0; i < sections.length; i++) {
           const r = sections[i].getBoundingClientRect();
           const center = r.top + r.height * 0.5;
           const dist = Math.abs(center - mid);
-          if (dist < best.dist) best = { idx: i, dist };
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIdx = i;
+          }
         }
-        setNow(best.idx + 1);
+        setNow(bestIdx);
       };
 
       let raf = 0;
@@ -162,23 +172,16 @@ const chapters = [
   </script>
 
   <style>
-    /* === 全体を黒基調に === */
-    :global(body){
-      background:#070709;
-      color:#e9e9ef;
-    }
+    :global(body){ background:#070709; color:#e9e9ef; }
     :global(.pastel-bg){ display:none; }
     :global(main){ padding: 0 0 40px; }
 
-    /* ===== 共通レイアウト ===== */
     .wrap{
       width: min(1200px, calc(100% - 40px));
       margin: 0 auto;
       padding: 46px 0 64px;
     }
-    .wrap.narrow{
-      width: min(860px, calc(100% - 40px));
-    }
+    .wrap.narrow{ width: min(860px, calc(100% - 40px)); }
     .secTitle{
       margin: 0 0 18px;
       text-align:center;
@@ -192,7 +195,7 @@ const chapters = [
       margin: 22px 0;
     }
 
-    /* ===== ページ番号HUD ===== */
+    /* ===== Page HUD ===== */
     .pageHUD{
       position: fixed;
       right: 14px;
@@ -221,12 +224,16 @@ const chapters = [
       font-weight: 900;
       color: rgba(243,208,138,.95);
     }
-    .pageSlash{
-      color: rgba(233,233,239,.45);
-      font-size: 11px;
+    .pageSlash{ color: rgba(233,233,239,.45); font-size: 11px; }
+    .pageDot{ color: rgba(233,233,239,.35); }
+    .pageChap{
+      font-size: 10px;
+      letter-spacing: .18em;
+      color: rgba(233,233,239,.62);
+      text-transform: uppercase;
     }
 
-    /* ===== 表紙（軽量テクスチャ：ページの影） ===== */
+    /* ===== Cover texture (page shadow) ===== */
     .cover{
       min-height: 90vh;
       display:flex;
@@ -234,41 +241,33 @@ const chapters = [
       border-bottom: 1px solid rgba(255,255,255,.12);
       position: relative;
       overflow: hidden;
-
-      /* “本の影”っぽい軽量表現：左右の陰影 + うっすら紙筋 */
       background:
         radial-gradient(1200px 600px at 50% 18%, rgba(243,208,138,.10), transparent 60%),
         radial-gradient(900px 500px at 10% 82%, rgba(255,255,255,.06), transparent 65%),
         linear-gradient(180deg, rgba(7,7,9,1), rgba(7,7,9,.98));
     }
-
-    /* ページの“折れ影”と“紙筋”を擬似要素で追加（軽い） */
     .cover::before{
       content:"";
       position:absolute;
       inset:-20px;
       pointer-events:none;
       background:
-        /* 背表紙っぽい縦影（中央） */
         linear-gradient(90deg,
           transparent 0%,
           rgba(0,0,0,.00) 46%,
           rgba(0,0,0,.25) 50%,
           rgba(0,0,0,.00) 54%,
           transparent 100%),
-        /* 左右のページ影 */
         linear-gradient(90deg,
           rgba(0,0,0,.55) 0%,
           rgba(0,0,0,.00) 18%,
           rgba(0,0,0,.00) 82%,
           rgba(0,0,0,.55) 100%),
-        /* 紙筋（超薄） */
         repeating-linear-gradient(0deg,
           rgba(255,255,255,.015) 0px,
           rgba(255,255,255,.015) 1px,
           rgba(255,255,255,.00) 10px,
           rgba(255,255,255,.00) 18px);
-      mix-blend-mode: normal;
       opacity: .85;
     }
 
@@ -301,7 +300,7 @@ const chapters = [
       line-height: 1.9;
     }
 
-    /* ===== ボタン / 導線 ===== */
+    /* ===== Buttons ===== */
     .actions{
       margin-top: 26px;
       display:flex;
@@ -311,7 +310,7 @@ const chapters = [
       align-items:center;
     }
 
-    /* しおり（リボン） */
+    /* Bookmark ribbon + “scroll wobble” (CSS only) */
     .bookmark{
       position: relative;
       display: inline-flex;
@@ -331,40 +330,50 @@ const chapters = [
       letter-spacing: .14em;
       font-weight: 900;
 
-      transform: translateY(0);
       transition: transform .18s ease, filter .18s ease;
     }
     .bookmark::after{
-      /* しおりの切り欠き（三角） */
       content:"";
       position:absolute;
       left: 50%;
       transform: translateX(-50%);
       bottom: -1px;
-      width: 0;
-      height: 0;
+      width: 0; height: 0;
       border-left: 14px solid transparent;
       border-right: 14px solid transparent;
       border-top: 14px solid rgba(7,7,9,1);
       filter: drop-shadow(0 -1px 0 rgba(243,208,138,.55));
     }
-    .bookmarkText{
-      font-size: 12px;
+
+    /* ✅ CSSだけで“スクロール揺れっぽい”錯覚：
+       - 背景の固定（parallax風）＋
+       - 微小な揺れアニメ（常時だと酔うので超弱）
+    */
+    .bookmark{
+      animation: bookmarkWobble 3.6s ease-in-out infinite;
+      transform-origin: 50% 0%;
+      will-change: transform;
     }
+    @keyframes bookmarkWobble{
+      0%, 100% { transform: rotate(-0.3deg) translateY(0px); }
+      50%      { transform: rotate(0.3deg) translateY(-1px); }
+    }
+
+    /* ユーザーが動きを減らす設定なら止める */
+    @media (prefers-reduced-motion: reduce){
+      .bookmark{ animation: none !important; }
+      .turnArrow{ animation: none !important; }
+    }
+
+    .bookmarkText{ font-size: 12px; }
     .bookmarkSub{
       font-size: 10px;
       color: rgba(233,233,239,.70);
       letter-spacing: .18em;
       font-weight: 800;
     }
-    .bookmark:hover{
-      transform: translateY(-2px);
-      filter: brightness(1.08);
-    }
-    .bookmark.small{
-      padding: 10px 14px 16px;
-      min-width: 150px;
-    }
+    .bookmark:hover{ filter: brightness(1.08); transform: translateY(-2px); }
+    .bookmark.small{ padding: 10px 14px 16px; min-width: 150px; }
 
     .ghost{
       padding: 10px 14px;
@@ -397,14 +406,13 @@ const chapters = [
       50%{ transform: translateY(6px); opacity:1; }
     }
 
-    /* ===== 目次 ===== */
+    /* ===== TOC ===== */
     .toc{
       border-bottom: 1px solid rgba(255,255,255,.12);
       position: relative;
       overflow:hidden;
     }
     .toc::before{
-      /* うっすら“紙筋”を全セクションに継承（軽量） */
       content:"";
       position:absolute;
       inset:0;
@@ -475,7 +483,7 @@ const chapters = [
       color: rgba(233,233,239,.70);
     }
 
-    /* ===== 余韻セクション ===== */
+    /* ===== Afterword ===== */
     .afterword{
       position: relative;
       overflow:hidden;
@@ -519,7 +527,6 @@ const chapters = [
       margin-top: 10px;
     }
 
-    /* スマホでHUDが邪魔なら少し薄く */
     @media (max-width: 640px){
       .pageHUD{ opacity: .70; }
     }
