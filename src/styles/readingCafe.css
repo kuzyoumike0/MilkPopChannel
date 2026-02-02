@@ -42,3 +42,14 @@ body::before{
       rgba(255,255,255,.00) 18px);
   opacity:.9;
 }
+/* =========================
+   強制：白い面をすべて無効化
+========================= */
+
+main,
+.section,
+.container,
+.card {
+  background: transparent !important;
+}
+
