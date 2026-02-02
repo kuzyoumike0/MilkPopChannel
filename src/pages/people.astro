@@ -1,0 +1,272 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+// ✅ base パス（/ または /repo/）
+const base = import.meta.env.BASE_URL;
+const join = (p) => new URL(p, `http://x${base}`).pathname;
+
+// ✅ 画像は public/img/people/ 配下を想定
+// 例: public/img/people/001.png
+const people = [
+  {
+    no: "人物 #001",
+    chapter: "Chapter 01",
+    name: "名前：〇〇〇〇",
+    role: "言葉を編む人",
+    vibe: "静かな余白 / 低い温度",
+    key: "ページをめくる音",
+    story:
+      "この人は、答えを急がない。\n書かれていない行間に、目を留める。\n沈黙は逃げではなく、次の一文のため。",
+    img: join("img/people/001.png"),
+  },
+  {
+    no: "人物 #002",
+    chapter: "Chapter 02",
+    name: "名前：〇〇〇〇",
+    role: "影を選ぶ人",
+    vibe: "赤い余韻 / 近づくほど遠い",
+    key: "視線が止まる瞬間",
+    story:
+      "この人は、光の届かない頁にだけ現れる。\n読み進めるほど、何かを奪われるのに\nそれでも目を離せない。",
+    img: join("img/people/002.png"),
+  },
+  {
+    no: "人物 #003",
+    chapter: "Chapter 03",
+    name: "名前：〇〇〇〇",
+    role: "眠りの外側にいる人",
+    vibe: "淡い青 / 祈りのような声",
+    key: "ひとつだけ残る言葉",
+    story:
+      "この人は、何も言わずに守っている。\n優しさは、説明しないほど強い。\n読み終えたあとで、重要さに気づく。",
+    img: join("img/people/003.png"),
+  },
+  {
+    no: "人物 #004",
+    chapter: "Chapter 04",
+    name: "名前：〇〇〇〇",
+    role: "順番を壊す人",
+    vibe: "色のノイズ / 逸れたリズム",
+    key: "笑いながら残す一文",
+    story:
+      "この人は、物語の順番を守らない。\nページを飛ばして、核心だけを置いていく。\n気づけば、中心にいる。",
+    img: join("img/people/004.png"),
+  },
+  {
+    no: "人物 #005",
+    chapter: "Chapter 05",
+    name: "名前：〇〇〇〇",
+    role: "静かに支える人",
+    vibe: "乾いた金 / きっちりした線",
+    key: "崩れない軸",
+    story:
+      "この人は、語られるより先に立っている。\n大きな展開の裏で、崩れない支えになる。\n見えないところで、物語を保つ。",
+    img: join("img/people/005.png"),
+  },
+  {
+    no: "人物 #006",
+    chapter: "Chapter 06",
+    name: "名前：〇〇〇〇",
+    role: "終わりを知る人",
+    vibe: "甘い影 / 近づくほど冷える",
+    key: "最後に残る余韻",
+    story:
+      "この人は、終わりを急がない。\n終章を知っていても、途中を大切にする。\nページを閉じても、余韻だけが残る。",
+    img: join("img/people/006.png"),
+  },
+];
+---
+
+<BaseLayout title="物語を生きる者たち" description="本を読むカフェのような雰囲気で、一人ずつ紹介するページ。">
+  <section class="peopleSection">
+    <div class="peopleWrap">
+      <header class="peopleTitleArea">
+        <h1 class="peopleTitle">物語を生きる者たち</h1>
+        <p class="peopleSub">
+          ここは、物語を読む場所であり、物語を生きる人たちが集う場所。<br />
+          それぞれの頁に、一人ずつ登場する。
+        </p>
+      </header>
+
+      <div class="peopleGrid">
+        {people.map((p) => (
+          <article class="peopleCard">
+            <div class="peopleFrame">
+              <div class="peopleFrameInner">
+                <img src={p.img} alt={`${p.no} ${p.name}`} loading="lazy" />
+              </div>
+            </div>
+
+            <div class="peopleInfo">
+              <div class="peopleRowTop">
+                <div class="peopleId">{p.no}</div>
+              </div>
+              <div class="peopleName">{p.name}</div>
+
+              <div class="peopleMeta">
+                <div><b>役割</b>：{p.role}</div>
+                <div><b>気配</b>：{p.vibe}</div>
+                <div><b>鍵</b>：{p.key}</div>
+              </div>
+
+              <p class="peopleStory">{p.story}</p>
+
+              <div class="peopleLinkRow">
+                <a class="peopleLink" href="#">続きを読む</a>
+                <span class="peopleChapter">— {p.chapter}</span>
+              </div>
+              <div class="peoplePaperHint" />
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <style>
+    /* === ページ全体を“黒基調”に（既存構造を崩さず上書き） === */
+    :global(body){
+      background:#070709;
+      color:#e9e9ef;
+    }
+    :global(.pastel-bg){
+      display:none;
+    }
+    :global(main){
+      padding: 12px 0 64px;
+    }
+
+    /* Header/Footer は既存のまま使い、本文だけ黒世界観に寄せる */
+    .peopleSection{
+      padding: 16px 0 0;
+    }
+    .peopleWrap{
+      width:min(1200px, calc(100% - 40px));
+      margin:0 auto;
+    }
+
+    /* ===== Title ===== */
+    .peopleTitleArea{
+      text-align:center;
+      margin: 14px 0 26px;
+    }
+    .peopleTitle{
+      margin:0;
+      font-weight:900;
+      letter-spacing:.18em;
+      font-size:20px;
+    }
+    .peopleSub{
+      margin:10px 0 0;
+      color: rgba(233,233,239,.72);
+      font-size:12px;
+      letter-spacing:.08em;
+      line-height:1.6;
+    }
+
+    /* ===== Grid ===== */
+    .peopleGrid{
+      display:grid;
+      gap:26px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 820px){
+      .peopleGrid{ grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* ===== Card ===== */
+    .peopleCard{
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+      overflow:hidden;
+    }
+
+    /* 画像枠（スクショの白枠感） */
+    .peopleFrame{
+      border-bottom:1px solid rgba(255,255,255,.14);
+      padding:16px;
+      background: #0b0b0f;
+    }
+    .peopleFrameInner{
+      border:1px solid rgba(255,255,255,.35);
+      background:#000;
+      aspect-ratio: 16 / 9;
+      overflow:hidden;
+      position:relative;
+    }
+    .peopleFrameInner img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      object-position:center bottom;
+      filter: contrast(1.02) saturate(1.02);
+    }
+
+    /* テキストエリア */
+    .peopleInfo{
+      padding:14px 16px 18px;
+      background: rgba(0,0,0,.25);
+    }
+    .peopleRowTop{
+      display:flex;
+      gap:10px;
+      align-items:baseline;
+      flex-wrap:wrap;
+      margin-bottom:6px;
+    }
+    .peopleId{
+      font-size:12px;
+      color: rgba(233,233,239,.68);
+      letter-spacing:.08em;
+      white-space:nowrap;
+    }
+    .peopleName{
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.06em;
+      margin: 0 0 10px;
+    }
+
+    .peopleMeta{
+      display:grid;
+      gap:4px;
+      margin: 10px 0 12px;
+      font-size:11px;
+      color: rgba(233,233,239,.68);
+      line-height:1.6;
+    }
+    .peopleMeta b{
+      color: rgba(233,233,239,.92);
+      font-weight:900;
+    }
+
+    .peopleStory{
+      font-size:11px;
+      line-height:1.85;
+      color: rgba(233,233,239,.90);
+      margin: 0 0 10px;
+      white-space:pre-line;
+    }
+
+    .peopleLinkRow{
+      margin-top:10px;
+      font-size:11px;
+      color: rgba(233,233,239,.68);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .peopleLink{
+      border-bottom:1px solid rgba(243,208,138,.55);
+      padding-bottom:2px;
+      color: rgba(243,208,138,.95);
+      font-weight:900;
+    }
+    .peoplePaperHint{
+      height:1px;
+      background: linear-gradient(90deg, transparent, rgba(243,208,138,.25), transparent);
+      margin: 18px 0 0;
+    }
+  </style>
+</BaseLayout>
