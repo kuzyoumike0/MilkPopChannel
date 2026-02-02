@@ -1,0 +1,263 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const base = import.meta.env.BASE_URL;
+
+/**
+ * People（男5 / 女5）
+ * - 画像は public/img/people/ に置く
+ * - GitHub Pages でも壊れないように BASE_URL を噛ませる
+ */
+const people = [
+  // ===== Girls (5) =====
+  {
+    id: "P001",
+    name: "月白 ルナ",
+    gender: "女",
+    role: "Vocal / Lyrics",
+    img: `${base}img/people/001.png`,
+    one: "月明かりの余韻。静かな言葉で世界を撫でる。",
+    bio: "透明感のある声で“余白”を歌う。ささやくような高音と、息の残る語尾が武器。",
+  },
+  {
+    id: "P002",
+    name: "黒咲 ユラ",
+    gender: "女",
+    role: "Vocal / Visual",
+    img: `${base}img/people/002.png`,
+    one: "赤い花、黒い微笑。近づくほど遠い。",
+    bio: "ステージで空気をひっくり返すタイプ。甘い低音→鋭いサビで“落差”を作る。",
+  },
+  {
+    id: "P003",
+    name: "雪乃 ノア",
+    gender: "女",
+    role: "Vocal / Harmony",
+    img: `${base}img/people/003.png`,
+    one: "淡い青。祈りみたいなコーラス。",
+    bio: "ハモリの設計担当。きれいな和音より、少しだけ歪ませて余韻を残すのが好き。",
+  },
+  {
+    id: "P004",
+    name: "彩羽 ミオ",
+    gender: "女",
+    role: "Vocal / Rap",
+    img: `${base}img/people/004.png`,
+    one: "色のノイズ。逸れたリズムで笑わせる。",
+    bio: "言葉遊びとリズム遊び担当。かわいさと“やかましさ”を両立してくる。",
+  },
+  {
+    id: "P005",
+    name: "金糸 リリ",
+    gender: "女",
+    role: "Vocal / Costume",
+    img: `${base}img/people/005.png`,
+    one: "乾いた金。きっちりした線で支える。",
+    bio: "衣装・世界観の芯。歌は派手にしないのに、終わった後に“効いてくる”タイプ。",
+  },
+
+  // ===== Boys (5) =====
+  {
+    id: "P006",
+    name: "蒼井 レイ",
+    gender: "男",
+    role: "Vocal / Guitar",
+    img: `${base}img/people/006.png`,
+    one: "終わりを知ってる顔で、始まりを鳴らす。",
+    bio: "ギターのアタックが歌い方にも出る。メロは優しいのに、サビで急に壁を作る。",
+  },
+  {
+    id: "P007",
+    name: "白瀬 ハル",
+    gender: "男",
+    role: "Vocal / Bass",
+    img: `${base}img/people/007.png`,
+    one: "低い温度。言葉を少なくして刺す。",
+    bio: "音数を引き算する担当。ベースの“間”で全体を締める。",
+  },
+  {
+    id: "P008",
+    name: "燈 イズミ",
+    gender: "男",
+    role: "Vocal / Keys",
+    img: `${base}img/people/008.png`,
+    one: "甘い影。近づくほど冷える。",
+    bio: "鍵盤で空気を染める。ピアノが綺麗な曲ほど、歌詞は意地悪。",
+  },
+  {
+    id: "P009",
+    name: "風見 シオン",
+    gender: "男",
+    role: "Vocal / Compose",
+    img: `${base}img/people/009.png`,
+    one: "順番を壊す人。正解を後回しにする。",
+    bio: "作曲・構成担当。Aメロを壊してからサビを成立させるのが得意。",
+  },
+  {
+    id: "P010",
+    name: "橙堂 ナギ",
+    gender: "男",
+    role: "Vocal / Drums",
+    img: `${base}img/people/010.png`,
+    one: "逸れたリズム。笑いながら真面目。",
+    bio: "ドラムで“景色”を作る。叩き方は強いのに、人当たりはやたら柔らかい。",
+  },
+];
+---
+
+<BaseLayout title="People" description="MilkPopメンバー紹介（男5 / 女5）">
+  <section class="peopleHero">
+    <div class="wrap">
+      <h1 class="heroTitle">People</h1>
+      <p class="heroLead">MilkPop の登場人物たち。男5 / 女5。画像＋短い物語で並べます。</p>
+      <div class="heroMeta">画像は <code>public/img/people/</code> に置いたものを表示しています。</div>
+    </div>
+  </section>
+
+  <section class="peopleSection">
+    <div class="wrap">
+      <div class="grid">
+        {people.map((p, i) => (
+          <article class="card" id={p.id}>
+            <div class="frame">
+              <img class="img" src={p.img} alt={`${p.name} (${p.gender})`} loading="lazy" />
+            </div>
+
+            <div class="text">
+              <div class="kicker">
+                <span class="pid">人物 #{String(i + 1).padStart(3, "0")}</span>
+                <span class="dot">•</span>
+                <span class="gender">{p.gender}</span>
+              </div>
+              <h2 class="name">{p.name}</h2>
+              <div class="role">{p.role}</div>
+              <p class="one">{p.one}</p>
+              <p class="bio">{p.bio}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <style>
+    :global(body){ background:#050507; color:#e9e9ef; }
+    :global(main){ padding: 0 0 56px; }
+    :global(.pastel-bg){ display:none; }
+
+    .wrap{
+      width:min(1200px, calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    .peopleHero{
+      padding: 48px 0 22px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background:
+        radial-gradient(900px 360px at 50% 0%, rgba(255,255,255,.08), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent 60%);
+    }
+    .heroTitle{
+      margin:0;
+      font-size: 34px;
+      letter-spacing: .06em;
+    }
+    .heroLead{
+      margin: 10px 0 0;
+      opacity:.9;
+      line-height:1.8;
+    }
+    .heroMeta{
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: .7;
+    }
+    .heroMeta code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+
+    .peopleSection{ padding: 26px 0 0; }
+
+    /* 画像＋テキスト（添付みたいな 3列カード） */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 26px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: transparent;
+    }
+
+    .frame{
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.35);
+      overflow:hidden;
+      aspect-ratio: 16 / 9;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow: 0 10px 26px rgba(0,0,0,.55);
+    }
+    .img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      filter: contrast(1.02) saturate(1.02);
+    }
+
+    .text{
+      padding-top: 10px;
+    }
+    .kicker{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      font-size: 12px;
+      letter-spacing: .06em;
+      opacity: .85;
+    }
+    .dot{ opacity:.6; }
+    .gender{
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+    }
+
+    .name{
+      margin: 6px 0 0;
+      font-size: 18px;
+      letter-spacing: .04em;
+    }
+    .role{
+      margin-top: 4px;
+      font-size: 12px;
+      opacity: .75;
+    }
+    .one{
+      margin: 10px 0 0;
+      font-size: 13px;
+      line-height: 1.75;
+      opacity: .92;
+    }
+    .bio{
+      margin: 8px 0 0;
+      font-size: 12px;
+      line-height: 1.8;
+      opacity: .72;
+    }
+  </style>
+</BaseLayout>
