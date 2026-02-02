@@ -1,272 +1,452 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-// ✅ base パス（/ または /repo/）
-const base = import.meta.env.BASE_URL;
-const join = (p) => new URL(p, `http://x${base}`).pathname;
-
-// ✅ 画像は public/img/people/ 配下を想定
-// 例: public/img/people/001.png
-const people = [
-  {
-    no: "人物 #001",
-    chapter: "Chapter 01",
-    name: "名前：〇〇〇〇",
-    role: "言葉を編む人",
-    vibe: "静かな余白 / 低い温度",
-    key: "ページをめくる音",
-    story:
-      "この人は、答えを急がない。\n書かれていない行間に、目を留める。\n沈黙は逃げではなく、次の一文のため。",
-    img: join("img/people/001.png"),
-  },
-  {
-    no: "人物 #002",
-    chapter: "Chapter 02",
-    name: "名前：〇〇〇〇",
-    role: "影を選ぶ人",
-    vibe: "赤い余韻 / 近づくほど遠い",
-    key: "視線が止まる瞬間",
-    story:
-      "この人は、光の届かない頁にだけ現れる。\n読み進めるほど、何かを奪われるのに\nそれでも目を離せない。",
-    img: join("img/people/002.png"),
-  },
-  {
-    no: "人物 #003",
-    chapter: "Chapter 03",
-    name: "名前：〇〇〇〇",
-    role: "眠りの外側にいる人",
-    vibe: "淡い青 / 祈りのような声",
-    key: "ひとつだけ残る言葉",
-    story:
-      "この人は、何も言わずに守っている。\n優しさは、説明しないほど強い。\n読み終えたあとで、重要さに気づく。",
-    img: join("img/people/003.png"),
-  },
-  {
-    no: "人物 #004",
-    chapter: "Chapter 04",
-    name: "名前：〇〇〇〇",
-    role: "順番を壊す人",
-    vibe: "色のノイズ / 逸れたリズム",
-    key: "笑いながら残す一文",
-    story:
-      "この人は、物語の順番を守らない。\nページを飛ばして、核心だけを置いていく。\n気づけば、中心にいる。",
-    img: join("img/people/004.png"),
-  },
-  {
-    no: "人物 #005",
-    chapter: "Chapter 05",
-    name: "名前：〇〇〇〇",
-    role: "静かに支える人",
-    vibe: "乾いた金 / きっちりした線",
-    key: "崩れない軸",
-    story:
-      "この人は、語られるより先に立っている。\n大きな展開の裏で、崩れない支えになる。\n見えないところで、物語を保つ。",
-    img: join("img/people/005.png"),
-  },
-  {
-    no: "人物 #006",
-    chapter: "Chapter 06",
-    name: "名前：〇〇〇〇",
-    role: "終わりを知る人",
-    vibe: "甘い影 / 近づくほど冷える",
-    key: "最後に残る余韻",
-    story:
-      "この人は、終わりを急がない。\n終章を知っていても、途中を大切にする。\nページを閉じても、余韻だけが残る。",
-    img: join("img/people/006.png"),
-  },
+const chapters = [
+  { no: "Chapter 01", name: "言葉を編む人", hint: "静かな余白 / 低い温度", href: "/people#p01" },
+  { no: "Chapter 02", name: "影を選ぶ人", hint: "赤い余韻 / 近づくほど遠い", href: "/people#p02" },
+  { no: "Chapter 03", name: "眠りの外側にいる人", hint: "淡い青 / 祈りのような声", href: "/people#p03" },
+  { no: "Chapter 04", name: "順番を壊す人", hint: "色のノイズ / 逸れたリズム", href: "/people#p04" },
+  { no: "Chapter 05", name: "静かに支える人", hint: "乾いた金 / きっちりした線", href: "/people#p05" },
+  { no: "Chapter 06", name: "終わりを知る人", hint: "甘い影 / 近づくほど冷える", href: "/people#p06" },
 ];
 ---
 
-<BaseLayout title="物語を生きる者たち" description="本を読むカフェのような雰囲気で、一人ずつ紹介するページ。">
-  <section class="peopleSection">
-    <div class="peopleWrap">
-      <header class="peopleTitleArea">
-        <h1 class="peopleTitle">物語を生きる者たち</h1>
-        <p class="peopleSub">
-          ここは、物語を読む場所であり、物語を生きる人たちが集う場所。<br />
-          それぞれの頁に、一人ずつ登場する。
-        </p>
-      </header>
+<BaseLayout title="物語を読む場所" description="本を読むカフェのような雰囲気のトップページ。">
+  <!-- ✅ クリック時ページめくり疑似（CSSのみで表示） -->
+  <div class="flipOnClick" aria-hidden="true"></div>
 
-      <div class="peopleGrid">
-        {people.map((p) => (
-          <article class="peopleCard">
-            <div class="peopleFrame">
-              <div class="peopleFrameInner">
-                <img src={p.img} alt={`${p.no} ${p.name}`} loading="lazy" />
-              </div>
-            </div>
+  <!-- 右下：ページ番号＋Chapter表示 -->
+  <div class="pageHUD" aria-hidden="true">
+    <div class="pageHUDInner">
+      <span class="pageLabel">Page</span>
+      <span id="pageNow" class="pageNow">01</span>
+      <span class="pageSlash">/</span>
+      <span id="pageTotal" class="pageTotal">03</span>
+      <span class="pageDot">•</span>
+      <span id="pageChap" class="pageChap">Cover</span>
+    </div>
+  </div>
 
-            <div class="peopleInfo">
-              <div class="peopleRowTop">
-                <div class="peopleId">{p.no}</div>
-              </div>
-              <div class="peopleName">{p.name}</div>
+  <section class="cover" data-page="01" data-chapter="Cover">
+    <div class="coverInner">
+      <p class="overline">MilkPop Channel — Reading Café Edition</p>
+      <h1 class="coverTitle">物語を読む場所</h1>
+      <p class="lead">
+        静かな灯りと、紙の温度。<br />
+        ここで出会うのは、物語を生きる者たち。
+      </p>
 
-              <div class="peopleMeta">
-                <div><b>役割</b>：{p.role}</div>
-                <div><b>気配</b>：{p.vibe}</div>
-                <div><b>鍵</b>：{p.key}</div>
-              </div>
+      <div class="actions">
+        <a class="bookmark" href="/people#p01">
+          <span class="bookmarkText">Open the book</span>
+          <span class="bookmarkSub">— People</span>
+        </a>
+        <a class="ghost" href="#toc">Table of contents</a>
+      </div>
 
-              <p class="peopleStory">{p.story}</p>
-
-              <div class="peopleLinkRow">
-                <a class="peopleLink" href="#">続きを読む</a>
-                <span class="peopleChapter">— {p.chapter}</span>
-              </div>
-              <div class="peoplePaperHint" />
-            </div>
-          </article>
-        ))}
+      <div class="turnPage">
+        <span class="turnText">Turn the page</span>
+        <span class="turnArrow">↓</span>
       </div>
     </div>
   </section>
 
+  <section id="toc" class="toc" data-page="02" data-chapter="Contents">
+    <div class="wrap">
+      <h2 class="secTitle">目次</h2>
+
+      <div class="tocGrid">
+        {chapters.slice(0, 3).map((c) => (
+          <a class="tocCard flipLink" href={c.href}>
+            <div class="tocNo">{c.no}</div>
+            <div class="tocName">{c.name}</div>
+            <div class="tocHint">{c.hint}</div>
+          </a>
+        ))}
+      </div>
+
+      <div class="paperLine"></div>
+
+      <div class="tocGrid">
+        {chapters.slice(3, 6).map((c) => (
+          <a class="tocCard flipLink" href={c.href}>
+            <div class="tocNo">{c.no}</div>
+            <div class="tocName">{c.name}</div>
+            <div class="tocHint">{c.hint}</div>
+          </a>
+        ))}
+      </div>
+
+      <div class="tocFooter">
+        <p class="tocCopy">
+          ページを閉じても、物語は続いていく。<br />
+          続きをめくるなら、しおりの場所へ。
+        </p>
+
+        <a class="bookmark small flipLink" href="/people#p01">
+          <span class="bookmarkText">Go to People</span>
+          <span class="bookmarkSub">— Chapters</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="afterword" data-page="03" data-chapter="Afterword">
+    <div class="wrap narrow">
+      <h2 class="secTitle">あとがき</h2>
+
+      <p class="para">
+        ここは、読む場所。<br />
+        同時に、誰かが生きている場所。
+      </p>
+      <p class="para">
+        正しさよりも、余韻。<br />
+        派手さよりも、静かな熱。
+      </p>
+
+      <div class="paperLine"></div>
+
+      <div class="endRow">
+        <a class="ghost" href="#toc">Back to contents</a>
+        <a class="bookmark small flipLink" href="/people#p01">
+          <span class="bookmarkText">Open the next page</span>
+          <span class="bookmarkSub">— People</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (() => {
+      const sections = Array.from(document.querySelectorAll("section[data-page]"));
+      const nowEl = document.getElementById("pageNow");
+      const totalEl = document.getElementById("pageTotal");
+      const chapEl = document.getElementById("pageChap");
+      if (!sections.length || !nowEl || !totalEl || !chapEl) return;
+
+      totalEl.textContent = String(sections.length).padStart(2, "0");
+
+      const setNow = (idx) => {
+        nowEl.textContent = String(idx + 1).padStart(2, "0");
+        chapEl.textContent = sections[idx].dataset.chapter || "";
+      };
+
+      const update = () => {
+        const mid = window.innerHeight * 0.5;
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i < sections.length; i++) {
+          const r = sections[i].getBoundingClientRect();
+          const center = r.top + r.height * 0.5;
+          const dist = Math.abs(center - mid);
+          if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+        }
+        setNow(bestIdx);
+      };
+
+      let raf = 0;
+      const onScroll = () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(update);
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+      update();
+    })();
+  </script>
+
   <style>
-    /* === ページ全体を“黒基調”に（既存構造を崩さず上書き） === */
-    :global(body){
-      background:#070709;
-      color:#e9e9ef;
+    :global(body){ background:#070709; color:#e9e9ef; }
+    :global(.pastel-bg){ display:none; }
+    :global(main){ padding: 0 0 40px; }
+
+    /* ✅ クリック時：ページめくり疑似オーバーレイ（CSSのみ）
+       flipLink を押している間だけ表示される
+    */
+    .flipOnClick{
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateX(10px);
+      background:
+        linear-gradient(90deg,
+          rgba(0,0,0,.65) 0%,
+          rgba(0,0,0,.00) 22%,
+          rgba(0,0,0,.00) 78%,
+          rgba(0,0,0,.65) 100%),
+        radial-gradient(1200px 520px at 50% 20%, rgba(243,208,138,.12), transparent 60%),
+        repeating-linear-gradient(0deg,
+          rgba(255,255,255,.016) 0px,
+          rgba(255,255,255,.016) 1px,
+          rgba(255,255,255,.00) 10px,
+          rgba(255,255,255,.00) 18px);
+      transition: opacity .12s ease, transform .12s ease;
     }
-    :global(.pastel-bg){
-      display:none;
-    }
-    :global(main){
-      padding: 12px 0 64px;
+    :global(a.flipLink:active) ~ .flipOnClick{
+      opacity: 1;
+      transform: translateX(0);
     }
 
-    /* Header/Footer は既存のまま使い、本文だけ黒世界観に寄せる */
-    .peopleSection{
-      padding: 16px 0 0;
-    }
-    .peopleWrap{
-      width:min(1200px, calc(100% - 40px));
-      margin:0 auto;
+    /* NOTE: 上の sibling セレクタが効かない環境向けに、
+       flipOnClick を body 直下に置く必要があるが、
+       Astro構造上は main 内でOK。
+       ただし :active ~ は “同一親” でないと効かないため、
+       ここでは下の方法で確実化：
+    */
+
+    /* ✅ 確実化：:has() を使う（対応ブラウザはほぼ現行）
+       flipLink が active の間、flipOnClick を出す
+    */
+    :global(body:has(a.flipLink:active)) .flipOnClick{
+      opacity: 1;
+      transform: translateX(0);
     }
 
-    /* ===== Title ===== */
-    .peopleTitleArea{
+    @media (prefers-reduced-motion: reduce){
+      .flipOnClick{ transition:none; opacity:0; }
+    }
+
+    .wrap{
+      width: min(1200px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 46px 0 64px;
+    }
+    .wrap.narrow{ width: min(860px, calc(100% - 40px)); }
+    .secTitle{
+      margin: 0 0 18px;
       text-align:center;
-      margin: 14px 0 26px;
-    }
-    .peopleTitle{
-      margin:0;
-      font-weight:900;
+      font-weight: 900;
       letter-spacing:.18em;
-      font-size:20px;
+      font-size: 18px;
     }
-    .peopleSub{
-      margin:10px 0 0;
-      color: rgba(233,233,239,.72);
-      font-size:12px;
-      letter-spacing:.08em;
-      line-height:1.6;
-    }
-
-    /* ===== Grid ===== */
-    .peopleGrid{
-      display:grid;
-      gap:26px;
-      grid-template-columns: 1fr;
-    }
-    @media (min-width: 820px){
-      .peopleGrid{ grid-template-columns: repeat(3, 1fr); }
-    }
-
-    /* ===== Card ===== */
-    .peopleCard{
-      border:1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
-      overflow:hidden;
-    }
-
-    /* 画像枠（スクショの白枠感） */
-    .peopleFrame{
-      border-bottom:1px solid rgba(255,255,255,.14);
-      padding:16px;
-      background: #0b0b0f;
-    }
-    .peopleFrameInner{
-      border:1px solid rgba(255,255,255,.35);
-      background:#000;
-      aspect-ratio: 16 / 9;
-      overflow:hidden;
-      position:relative;
-    }
-    .peopleFrameInner img{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      object-position:center bottom;
-      filter: contrast(1.02) saturate(1.02);
-    }
-
-    /* テキストエリア */
-    .peopleInfo{
-      padding:14px 16px 18px;
-      background: rgba(0,0,0,.25);
-    }
-    .peopleRowTop{
-      display:flex;
-      gap:10px;
-      align-items:baseline;
-      flex-wrap:wrap;
-      margin-bottom:6px;
-    }
-    .peopleId{
-      font-size:12px;
-      color: rgba(233,233,239,.68);
-      letter-spacing:.08em;
-      white-space:nowrap;
-    }
-    .peopleName{
-      font-size:13px;
-      font-weight:900;
-      letter-spacing:.06em;
-      margin: 0 0 10px;
-    }
-
-    .peopleMeta{
-      display:grid;
-      gap:4px;
-      margin: 10px 0 12px;
-      font-size:11px;
-      color: rgba(233,233,239,.68);
-      line-height:1.6;
-    }
-    .peopleMeta b{
-      color: rgba(233,233,239,.92);
-      font-weight:900;
-    }
-
-    .peopleStory{
-      font-size:11px;
-      line-height:1.85;
-      color: rgba(233,233,239,.90);
-      margin: 0 0 10px;
-      white-space:pre-line;
-    }
-
-    .peopleLinkRow{
-      margin-top:10px;
-      font-size:11px;
-      color: rgba(233,233,239,.68);
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:flex-start;
-    }
-    .peopleLink{
-      border-bottom:1px solid rgba(243,208,138,.55);
-      padding-bottom:2px;
-      color: rgba(243,208,138,.95);
-      font-weight:900;
-    }
-    .peoplePaperHint{
+    .paperLine{
       height:1px;
       background: linear-gradient(90deg, transparent, rgba(243,208,138,.25), transparent);
-      margin: 18px 0 0;
+      margin: 22px 0;
     }
+
+    .pageHUD{
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 1200;
+      pointer-events: none;
+      opacity: .85;
+    }
+    .pageHUDInner{
+      display:flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.28);
+      backdrop-filter: blur(6px);
+    }
+    .pageLabel{
+      font-size: 10px;
+      letter-spacing: .18em;
+      color: rgba(233,233,239,.55);
+    }
+    .pageNow, .pageTotal{
+      font-size: 12px;
+      letter-spacing: .12em;
+      font-weight: 900;
+      color: rgba(243,208,138,.95);
+    }
+    .pageSlash{ color: rgba(233,233,239,.45); font-size: 11px; }
+    .pageDot{ color: rgba(233,233,239,.35); }
+    .pageChap{
+      font-size: 10px;
+      letter-spacing: .18em;
+      color: rgba(233,233,239,.62);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .cover{
+      min-height: 90vh;
+      display:flex;
+      align-items:center;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(1200px 600px at 50% 18%, rgba(243,208,138,.10), transparent 60%),
+        radial-gradient(900px 500px at 10% 82%, rgba(255,255,255,.06), transparent 65%),
+        linear-gradient(180deg, rgba(7,7,9,1), rgba(7,7,9,.98));
+    }
+    .cover::before{
+      content:"";
+      position:absolute;
+      inset:-20px;
+      pointer-events:none;
+      background:
+        linear-gradient(90deg,
+          transparent 0%,
+          rgba(0,0,0,.00) 46%,
+          rgba(0,0,0,.25) 50%,
+          rgba(0,0,0,.00) 54%,
+          transparent 100%),
+        linear-gradient(90deg,
+          rgba(0,0,0,.55) 0%,
+          rgba(0,0,0,.00) 18%,
+          rgba(0,0,0,.00) 82%,
+          rgba(0,0,0,.55) 100%),
+        repeating-linear-gradient(0deg,
+          rgba(255,255,255,.015) 0px,
+          rgba(255,255,255,.015) 1px,
+          rgba(255,255,255,.00) 10px,
+          rgba(255,255,255,.00) 18px);
+      opacity: .85;
+    }
+    .coverInner{
+      width:min(1100px, calc(100% - 40px));
+      margin:0 auto;
+      padding: 56px 0 30px;
+      text-align:center;
+      position: relative;
+      z-index: 1;
+    }
+    .overline{ margin:0 0 12px; font-size:11px; letter-spacing:.18em; color: rgba(233,233,239,.60); }
+    .coverTitle{ margin:0; font-weight: 900; letter-spacing:.18em; font-size: clamp(26px, 4vw, 46px); }
+    .lead{ margin: 14px auto 0; max-width: 680px; color: rgba(233,233,239,.74); font-size: 13px; letter-spacing: .10em; line-height: 1.9; }
+
+    .actions{ margin-top: 26px; display:flex; gap: 12px; justify-content:center; flex-wrap:wrap; align-items:center; }
+
+    .bookmark{
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: center;
+      justify-content:center;
+
+      padding: 12px 16px 18px;
+      min-width: 160px;
+
+      border: 1px solid rgba(243,208,138,.55);
+      background: rgba(0,0,0,.22);
+      color: rgba(243,208,138,.95);
+      text-decoration: none;
+
+      letter-spacing: .14em;
+      font-weight: 900;
+
+      transition: transform .18s ease, filter .18s ease;
+      animation: bookmarkWobble 3.6s ease-in-out infinite;
+      transform-origin: 50% 0%;
+      will-change: transform;
+    }
+    .bookmark::after{
+      content:"";
+      position:absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -1px;
+      width: 0; height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 14px solid rgba(7,7,9,1);
+      filter: drop-shadow(0 -1px 0 rgba(243,208,138,.55));
+    }
+    @keyframes bookmarkWobble{
+      0%, 100% { transform: rotate(-0.3deg) translateY(0px); }
+      50%      { transform: rotate(0.3deg) translateY(-1px); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .bookmark{ animation: none !important; }
+      .turnArrow{ animation: none !important; }
+    }
+
+    .bookmarkText{ font-size: 12px; }
+    .bookmarkSub{ font-size: 10px; color: rgba(233,233,239,.70); letter-spacing: .18em; font-weight: 800; }
+    .bookmark:hover{ filter: brightness(1.08); transform: translateY(-2px); }
+    .bookmark.small{ padding: 10px 14px 16px; min-width: 150px; }
+
+    .ghost{
+      padding: 10px 14px;
+      font-size: 12px;
+      letter-spacing: .14em;
+      color: rgba(233,233,239,.72);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.02);
+      text-decoration:none;
+      transition: filter .18s ease;
+    }
+    .ghost:hover{ filter: brightness(1.08); }
+
+    .turnPage{ margin-top: 26px; display:flex; flex-direction: column; gap: 8px; align-items:center; color: rgba(233,233,239,.55); font-size: 11px; letter-spacing:.16em; }
+    .turnArrow{ display:inline-block; animation: bob 1.4s ease-in-out infinite; }
+    @keyframes bob{ 0%,100%{ transform: translateY(0); opacity:.7; } 50%{ transform: translateY(6px); opacity:1; } }
+
+    .toc{
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      position: relative;
+      overflow:hidden;
+    }
+    .toc::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(0deg,
+          rgba(255,255,255,.012) 0px,
+          rgba(255,255,255,.012) 1px,
+          rgba(255,255,255,.00) 10px,
+          rgba(255,255,255,.00) 18px);
+      opacity: .8;
+    }
+    .toc > .wrap{ position:relative; z-index:1; }
+
+    .tocGrid{ display:grid; gap: 18px; grid-template-columns: 1fr; }
+    @media(min-width:820px){ .tocGrid{ grid-template-columns: repeat(3, 1fr); } }
+    .tocCard{
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+      padding: 16px 16px 14px;
+      display:block;
+      text-decoration:none;
+      transition: filter .18s ease, transform .18s ease;
+    }
+    .tocCard:hover{ filter: brightness(1.06); transform: translateY(-2px); }
+    .tocNo{ font-size: 11px; letter-spacing:.14em; color: rgba(243,208,138,.9); font-weight: 900; }
+    .tocName{ margin-top: 8px; font-size: 13px; letter-spacing:.10em; font-weight: 900; color: rgba(233,233,239,.92); }
+    .tocHint{ margin-top: 8px; font-size: 11px; line-height: 1.7; letter-spacing:.08em; color: rgba(233,233,239,.64); }
+
+    .tocFooter{ margin-top: 28px; text-align:center; display:flex; flex-direction: column; gap: 14px; align-items:center; }
+    .tocCopy{ margin:0; font-size: 12px; letter-spacing: .10em; line-height: 1.9; color: rgba(233,233,239,.70); }
+
+    .afterword{
+      position: relative;
+      overflow:hidden;
+    }
+    .afterword::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(90deg,
+          rgba(0,0,0,.35) 0%,
+          rgba(0,0,0,.00) 18%,
+          rgba(0,0,0,.00) 82%,
+          rgba(0,0,0,.35) 100%),
+        repeating-linear-gradient(0deg,
+          rgba(255,255,255,.010) 0px,
+          rgba(255,255,255,.010) 1px,
+          rgba(255,255,255,.00) 10px,
+          rgba(255,255,255,.00) 18px);
+      opacity: .85;
+    }
+    .afterword > .wrap{ position:relative; z-index:1; }
+
+    .para{ margin: 0 auto 12px; max-width: 620px; text-align:center; font-size: 13px; letter-spacing: .10em; line-height: 1.9; color: rgba(233,233,239,.74); }
+    .endRow{ display:flex; justify-content:center; gap: 12px; flex-wrap: wrap; align-items:center; margin-top: 10px; }
+
+    @media (max-width: 640px){ .pageHUD{ opacity: .70; } }
   </style>
 </BaseLayout>
