@@ -52,4 +52,29 @@ main,
 .card {
   background: transparent !important;
 }
+/* =========================
+   本のページ余白
+========================= */
+main {
+  padding: 80px 0 120px;
+}
+
+.container {
+  max-width: 860px;
+}
+
+/* 見出しを「章タイトル」風に */
+h1, h2 {
+  letter-spacing: .04em;
+  font-weight: 700;
+}
+
+/* 目次リンクを本っぽく */
+a {
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,.25);
+}
+a:hover {
+  border-bottom-color: rgba(255,255,255,.7);
+}
 
