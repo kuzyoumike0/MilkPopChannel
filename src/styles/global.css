@@ -1,3 +1,13 @@
+---
+import "../styles/global.css";
+import "../styles/readingCafe.css"; // ✅ 追加（globalより後）
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+...
+---
+
+
+
 :root{
   --bg:#fff;
   --text:#1f2430;
