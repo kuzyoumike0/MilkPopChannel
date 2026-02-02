@@ -116,6 +116,13 @@ const pageChapters = [
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowfullscreen
             ></iframe>
+
+            <!-- ✅ スワイプ検出用（iframe上は取れないので下端だけ） -->
+            <div class="ytSwipeZone" aria-hidden="true"></div>
+
+            <!-- ✅ 左右ボタン（常時表示・端でdisabled） -->
+            <button class="ytNav ytPrev" type="button" aria-label="前のMV">‹</button>
+            <button class="ytNav ytNext" type="button" aria-label="次のMV">›</button>
           </div>
 
           <div class="ytMeta">
@@ -132,14 +139,17 @@ const pageChapters = [
             </a>
           </div>
         </div>
+
+        <!-- ✅ 横並び（横スクロール）サムネ列 -->
         <div class="ytRow" aria-label="YouTube links">
-          {videos.map((v, i) => (
+          {videos.map((v) => (
             <a
               class="ytCard"
               href={ytWatch(v.id)}
               data-ytid={v.id}
               data-title={v.title}
-              data-note={v.note}              data-dur={v.dur}
+              data-note={v.note}
+              data-dur={v.dur}
               aria-label={`${v.title} を再生`}
             >
               <div class="ytThumb">
@@ -151,7 +161,6 @@ const pageChapters = [
                 <div class="ytCardTitle">{v.title}</div>
                 <div class="ytCardNote">{v.note}</div>
               </div>
-              {i === 0 && <span class="ytNow" aria-hidden="true">Now</span>}
             </a>
           ))}
         </div>
@@ -171,7 +180,7 @@ const pageChapters = [
     </div>
   </section>
 
-  <!-- ✅ YouTube selector (fade) -->
+  <!-- ✅ YouTube selector (fade) + 常時ナビ + 端で止める + スワイプ -->
   <script is:inline>
     (() => {
       const root = document.getElementById("ytToc");
@@ -179,32 +188,51 @@ const pageChapters = [
       const title = document.getElementById("ytTitle");
       const note = document.getElementById("ytNote");
       const link = document.getElementById("ytLink");
+      const prevBtn = document.querySelector(".ytNav.ytPrev");
+      const nextBtn = document.querySelector(".ytNav.ytNext");
       const cards = Array.from(document.querySelectorAll(".ytCard[data-ytid]"));
+      const swipeZone = document.querySelector(".ytSwipeZone");
       if (!root || !frame || !title || !note || !link || !cards.length) return;
+
+      // ✅ ループしない（端で止める）
+      const clamp = (i) => Math.max(0, Math.min(cards.length - 1, i));
 
       const setNowBadge = (activeId) => {
         cards.forEach((c) => c.classList.toggle("isActive", c.dataset.ytid === activeId));
       };
 
+      const setNavState = () => {
+        if (prevBtn) prevBtn.disabled = currentIndex <= 0;
+        if (nextBtn) nextBtn.disabled = currentIndex >= cards.length - 1;
+      };
+
       let lock = false;
+      let currentIndex = 0;
+
       const swap = (id, t, n, autoplay) => {
         frame.src = `https://www.youtube.com/embed/${id}?${autoplay ? "autoplay=1&" : ""}rel=0`;
         title.textContent = t || "";
         note.textContent = n || "";
         link.href = `https://www.youtube.com/watch?v=${id}`;
         setNowBadge(id);
+        setNavState();
       };
 
-      const playWithFade = (card, autoplay = true) => {
-        if (lock) return;
-        const id = card.dataset.ytid;
-        if (card.classList.contains("isActive")) return;
-        lock = true;
+      const setByIndex = (idx, autoplay = true) => {
+        currentIndex = clamp(idx);
+        const c = cards[currentIndex];
+        swap(c.dataset.ytid, c.dataset.title, c.dataset.note, autoplay);
+      };
 
+      const playWithFadeIndex = (idx, autoplay = true) => {
+        if (lock) return;
+        idx = clamp(idx);
+        if (idx === currentIndex) return;
+
+        lock = true;
         root.classList.add("isFading");
-        window.setTimeout(() => {
-          swap(id, card.dataset.title, card.dataset.note, autoplay);
-        }, 160);
+
+        window.setTimeout(() => setByIndex(idx, autoplay), 160);
 
         window.setTimeout(() => {
           root.classList.remove("isFading");
@@ -212,15 +240,70 @@ const pageChapters = [
         }, 320);
       };
 
+      const playWithFadeCard = (card, autoplay = true) => {
+        const idx = cards.indexOf(card);
+        if (idx < 0) return;
+        playWithFadeIndex(idx, autoplay);
+      };
+
       cards.forEach((c) => {
         c.addEventListener("click", (e) => {
           e.preventDefault();
-          playWithFade(c, true);
+          playWithFadeCard(c, true);
         });
       });
 
-      // 初期：先頭をアクティブ
-      setNowBadge(cards[0].dataset.ytid);
+      const prev = () => playWithFadeIndex(currentIndex - 1, true);
+      const next = () => playWithFadeIndex(currentIndex + 1, true);
+
+      prevBtn && prevBtn.addEventListener("click", prev);
+      nextBtn && nextBtn.addEventListener("click", next);
+
+      // Keyboard（このセクションが見えてる/フォーカス近い時だけ）
+      window.addEventListener("keydown", (e) => {
+        const active = document.activeElement;
+        const inToc = root.contains(active) || active === document.body;
+        if (!inToc) return;
+        if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+        if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+      });
+
+      // Swipe（APIなし簡易）
+      // ✅ iframe上はイベントが取れないので「プレイヤー下端のスワイプゾーン」&「サムネ列」で拾う
+      const attachSwipe = (el) => {
+        if (!el) return;
+        let startX = 0;
+        let startY = 0;
+
+        el.addEventListener("touchstart", (e) => {
+          const t = e.touches && e.touches[0];
+          if (!t) return;
+          startX = t.clientX;
+          startY = t.clientY;
+        }, { passive: true });
+
+        el.addEventListener("touchend", (e) => {
+          const t = e.changedTouches && e.changedTouches[0];
+          if (!t) return;
+          const dx = t.clientX - startX;
+          const dy = t.clientY - startY;
+
+          // 縦スクロール誤爆を減らす
+          if (Math.abs(dx) < 60) return;
+          if (Math.abs(dy) > 80) return;
+
+          if (dx > 0) prev();
+          else next();
+        }, { passive: true });
+      };
+
+      attachSwipe(swipeZone);
+      attachSwipe(root.querySelector(".ytRow"));
+
+      // Init
+      currentIndex = 0;
+      setByIndex(0, false);
+      setNavState();
     })();
   </script>
 
@@ -384,256 +467,300 @@ const pageChapters = [
           rgba(0,0,0,.00) 54%,
           transparent 100%),
         linear-gradient(90deg,
-          rgba(0,0,0,.55) 0%,
-          rgba(0,0,0,.00) 18%,
-          rgba(0,0,0,.00) 82%,
-          rgba(0,0,0,.55) 100%),
-        repeating-linear-gradient(0deg,
-          rgba(255,255,255,.015) 0px,
-          rgba(255,255,255,.015) 1px,
-          rgba(255,255,255,.00) 10px,
-          rgba(255,255,255,.00) 18px);
-      opacity: .85;
+          rgba(255,255,255,.03) 0%,
+          transparent 25%,
+          rgba(255,255,255,.02) 50%,
+          transparent 75%,
+          rgba(255,255,255,.03) 100%);
+      opacity: .35;
+      mix-blend-mode: screen;
     }
 
     .coverInner{
-      width:min(1100px, calc(100% - 40px));
-      margin:0 auto;
-      padding: 56px 0 30px;
+      width: min(980px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 72px 0;
       text-align:center;
-      position: relative;
-      z-index: 1;
     }
     .overline{
-      margin:0 0 12px;
-      font-size:11px;
-      letter-spacing:.18em;
-      color: rgba(233,233,239,.60);
+      margin: 0 0 10px;
+      font-size: 10px;
+      letter-spacing:.26em;
+      color: rgba(233,233,239,.62);
+      text-transform: uppercase;
     }
     .coverTitle{
-      margin:0;
+      margin: 0 0 10px;
       font-weight: 900;
-      letter-spacing:.18em;
-      font-size: clamp(26px, 4vw, 46px);
+      letter-spacing:.10em;
+      font-size: clamp(34px, 5vw, 52px);
+      color: rgba(243,208,138,.95);
+      text-shadow: 0 12px 40px rgba(0,0,0,.55);
     }
     .lead{
-      margin: 14px auto 0;
-      max-width: 680px;
-      color: rgba(233,233,239,.74);
-      font-size: 13px;
-      letter-spacing: .10em;
-      line-height: 1.9;
+      margin: 0 auto 22px;
+      max-width: 620px;
+      line-height: 1.95;
+      font-size: 14px;
+      letter-spacing:.08em;
+      color: rgba(233,233,239,.78);
     }
 
-    /* ===== Buttons ===== */
     .actions{
-      margin-top: 26px;
       display:flex;
-      gap: 12px;
       justify-content:center;
-      flex-wrap:wrap;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .ghost{
+      display:inline-flex;
       align-items:center;
+      justify-content:center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color: rgba(233,233,239,.82);
+      text-decoration:none;
+      font-weight: 800;
+      letter-spacing:.10em;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease;
+    }
+    .ghost:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.06);
+      border-color: rgba(243,208,138,.28);
     }
 
-    /* Bookmark ribbon + “scroll wobble” (CSS only) */
     .bookmark{
       position: relative;
-      display: inline-flex;
+      display:inline-flex;
       flex-direction: column;
-      gap: 2px;
-      align-items: center;
+      align-items:center;
       justify-content:center;
-
-      padding: 12px 16px 18px;
-      min-width: 160px;
-
-      border: 1px solid rgba(243,208,138,.55);
-      background: rgba(0,0,0,.22);
-      color: rgba(243,208,138,.95);
-      text-decoration: none;
-
-      letter-spacing: .14em;
-      font-weight: 900;
-
-      transition: transform .18s ease, filter .18s ease;
-    }
-    .bookmark::after{
-      content:"";
-      position:absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: -1px;
-      width: 0; height: 0;
-      border-left: 14px solid transparent;
-      border-right: 14px solid transparent;
-      border-top: 14px solid rgba(7,7,9,1);
-      filter: drop-shadow(0 -1px 0 rgba(243,208,138,.55));
-    }
-
-    /* ✅ CSSだけで“スクロール揺れっぽい”錯覚：
-       - 背景の固定（parallax風）＋
-       - 微小な揺れアニメ（常時だと酔うので超弱）
-    */
-    .bookmark{
-      animation: bookmarkWobble 3.6s ease-in-out infinite;
-      transform-origin: 50% 0%;
-      will-change: transform;
-    }
-    @keyframes bookmarkWobble{
-      0%, 100% { transform: rotate(-0.3deg) translateY(0px); }
-      50%      { transform: rotate(0.3deg) translateY(-1px); }
-    }
-
-    /* ユーザーが動きを減らす設定なら止める */
-    @media (prefers-reduced-motion: reduce){
-      .bookmark{ animation: none !important; }
-      .turnArrow{ animation: none !important; }
-    }
-
-    .bookmarkText{ font-size: 12px; }
-    .bookmarkSub{
-      font-size: 10px;
-      color: rgba(233,233,239,.70);
-      letter-spacing: .18em;
-      font-weight: 800;
-    }
-    .bookmark:hover{ filter: brightness(1.08); transform: translateY(-2px); }
-    .bookmark.small{ padding: 10px 14px 16px; min-width: 150px; }
-
-    .ghost{
-      padding: 10px 14px;
-      font-size: 12px;
-      letter-spacing: .14em;
-      color: rgba(233,233,239,.72);
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.02);
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(243,208,138,.35);
+      background: rgba(243,208,138,.08);
+      color: rgba(243,208,138,.98);
       text-decoration:none;
-      transition: filter .18s ease;
+      font-weight: 900;
+      letter-spacing:.12em;
+      box-shadow: 0 16px 42px rgba(0,0,0,.45);
+      transition: transform .16s ease, filter .16s ease;
     }
-    .ghost:hover{ filter: brightness(1.08); }
+    .bookmark:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+    .bookmarkText{ font-size: 12px; line-height: 1; }
+    .bookmarkSub{ font-size: 10px; opacity: .74; margin-top: 4px; letter-spacing: .18em; }
+    .bookmark.small{ height: 40px; padding: 0 14px; }
 
     .turnPage{
-      margin-top: 26px;
+      margin-top: 28px;
       display:flex;
       flex-direction: column;
-      gap: 8px;
       align-items:center;
-      color: rgba(233,233,239,.55);
-      font-size: 11px;
-      letter-spacing:.16em;
+      gap: 6px;
+      opacity: .70;
+      user-select:none;
+    }
+    .turnText{
+      font-size: 10px;
+      letter-spacing:.22em;
+      text-transform: uppercase;
+      color: rgba(233,233,239,.60);
     }
     .turnArrow{
-      display:inline-block;
-      animation: bob 1.4s ease-in-out infinite;
+      font-size: 18px;
+      color: rgba(243,208,138,.85);
+      animation: bounce 1.4s ease-in-out infinite;
     }
-    @keyframes bob{
-      0%,100%{ transform: translateY(0); opacity:.7; }
-      50%{ transform: translateY(6px); opacity:1; }
+    @keyframes bounce{
+      0%,100%{ transform: translateY(0); }
+      50%{ transform: translateY(6px); }
     }
 
-    /* ===== TOC ===== */
+    /* ===== TOC section ===== */
     .toc{
       border-bottom: 1px solid rgba(255,255,255,.12);
-      position: relative;
-      overflow:hidden;
-    }
-    .toc::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
       background:
-        repeating-linear-gradient(0deg,
-          rgba(255,255,255,.012) 0px,
-          rgba(255,255,255,.012) 1px,
-          rgba(255,255,255,.00) 10px,
-          rgba(255,255,255,.00) 18px);
-      opacity: .8;
+        radial-gradient(900px 520px at 50% 12%, rgba(243,208,138,.07), transparent 60%),
+        radial-gradient(800px 520px at 20% 80%, rgba(255,255,255,.05), transparent 65%),
+        linear-gradient(180deg, rgba(7,7,9,.98), rgba(7,7,9,1));
     }
-    .toc > .wrap{ position:relative; z-index:1; }
 
-    .tocGrid{
-      display:grid;
-      gap: 18px;
-      grid-template-columns: 1fr;
+    .ytToc{
+      margin-top: 10px;
+      transition: opacity .22s ease, transform .22s ease;
     }
-    @media(min-width:820px){
-      .tocGrid{ grid-template-columns: repeat(3, 1fr); }
+    .ytToc.isFading{
+      opacity: .0;
+      transform: translateY(2px);
     }
-    .tocCard{
-      border: 1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
-      padding: 16px 16px 14px;
+
+    .ytPlayer{
+      width: min(980px, 100%);
+      margin: 0 auto;
+    }
+
+    .ytFrame{
+      position: relative;
+      border-radius: 18px;
+      overflow:hidden;
+      box-shadow: 0 22px 60px rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.35);
+    }
+    .ytFrame iframe{
+      width: 100%;
+      aspect-ratio: 16 / 9;
       display:block;
-      text-decoration:none;
-      transition: filter .18s ease, transform .18s ease;
+      border: 0;
+      background:#000;
     }
-    .tocCard:hover{
-      filter: brightness(1.06);
-      transform: translateY(-2px);
+
+    /* ✅ スワイプ検出用（下端のみ） */
+    .ytSwipeZone{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:26px;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,.10));
+      border-bottom-left-radius: 18px;
+      border-bottom-right-radius: 18px;
+      cursor: grab;
+      touch-action: pan-y;
     }
-    .tocNo{
-      font-size: 11px;
-      letter-spacing:.14em;
-      color: rgba(243,208,138,.9);
-      font-weight: 900;
-    }
-    .tocName{
-      margin-top: 8px;
-      font-size: 13px;
-      letter-spacing:.10em;
-      font-weight: 900;
-      color: rgba(233,233,239,.92);
-    }
-    .tocHint{
-      margin-top: 8px;
-      font-size: 11px;
-      line-height: 1.7;
-      letter-spacing:.08em;
-      color: rgba(233,233,239,.64);
-    }
-    .tocFooter{
-      margin-top: 28px;
+
+    .ytMeta{
+      margin: 12px 0 0;
       text-align:center;
-      display:flex;
-      flex-direction: column;
-      gap: 14px;
-      align-items:center;
     }
-    .tocCopy{
-      margin:0;
+    .ytTitle{
+      font-weight: 900;
+      letter-spacing: .12em;
+      color: rgba(243,208,138,.95);
+      font-size: 14px;
+    }
+    .ytNote{
+      margin-top: 6px;
       font-size: 12px;
       letter-spacing: .10em;
-      line-height: 1.9;
-      color: rgba(233,233,239,.70);
+      color: rgba(233,233,239,.72);
     }
+    .ytLink{
+      display:inline-block;
+      margin-top: 10px;
+      font-size: 12px;
+      letter-spacing: .12em;
+      color: rgba(233,233,239,.78);
+      text-decoration:none;
+      border-bottom: 1px solid rgba(243,208,138,.28);
+      padding-bottom: 2px;
+    }
+    .ytLink:hover{ color: rgba(243,208,138,.95); }
 
-    /* ===== Afterword ===== */
-    .afterword{
-      position: relative;
+    /* 横並びサムネ列 */
+    .ytRow{
+      width: min(980px, 100%);
+      margin: 16px auto 0;
+      display:flex;
+      gap: 12px;
+      overflow-x:auto;
+      padding-bottom: 10px;
+      scroll-snap-type: x mandatory;
+    }
+    .ytCard{
+      min-width: 220px;
+      max-width: 220px;
+      flex: 0 0 auto;
+      display:flex;
+      flex-direction: column;
+      text-decoration:none;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
       overflow:hidden;
+      scroll-snap-align: start;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+      position: relative;
     }
-    .afterword::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      background:
-        linear-gradient(90deg,
-          rgba(0,0,0,.35) 0%,
-          rgba(0,0,0,.00) 18%,
-          rgba(0,0,0,.00) 82%,
-          rgba(0,0,0,.35) 100%),
-        repeating-linear-gradient(0deg,
-          rgba(255,255,255,.010) 0px,
-          rgba(255,255,255,.010) 1px,
-          rgba(255,255,255,.00) 10px,
-          rgba(255,255,255,.00) 18px);
-      opacity: .85;
+    .ytCard:hover{
+      transform: translateY(-1px);
+      border-color: rgba(243,208,138,.24);
+      background: rgba(255,255,255,.05);
     }
-    .afterword > .wrap{ position:relative; z-index:1; }
 
-    .para{
+    .ytThumb{
+      position: relative;
+      background:#000;
+    }
+    .ytThumb img{
+      width: 100%;
+      display:block;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      filter: saturate(1.05);
+    }
+    .ytPlay{
+      position:absolute;
+      left: 10px;
+      bottom: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(0,0,0,.65);
+      border: 1px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.92);
+      font-size: 12px;
+    }
+    .ytDur{
+      position:absolute;
+      right: 10px;
+      bottom: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(0,0,0,.72);
+      border: 1px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.92);
+      font-size: 11px;
+      letter-spacing:.08em;
+    }
+
+    .ytCardBody{
+      padding: 10px 10px 12px;
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ytCardTitle{
+      font-weight: 900;
+      letter-spacing:.10em;
+      color: rgba(233,233,239,.90);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .ytCardNote{
+      font-size: 11px;
+      letter-spacing:.10em;
+      color: rgba(233,233,239,.62);
+    }
+
+    .tocFooter{
+      margin-top: 26px;
+      text-align:center;
+    }
+    .tocCopy{
       margin: 0 auto 12px;
       max-width: 620px;
       text-align:center;
@@ -654,6 +781,92 @@ const pageChapters = [
 
     @media (max-width: 640px){
       .pageHUD{ opacity: .70; }
+      .ytCard{ min-width: 200px; max-width: 200px; }
+    }
+
+    /* ===== YouTube TOC enhancements: prev/next + active badge + fade ===== */
+    .ytFrame{ position: relative; }
+    .ytNav{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      width:42px; height:42px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(0,0,0,.55);
+      color: rgba(233,233,239,.92);
+      font-size: 26px;
+      line-height: 40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      transition: transform .16s ease, filter .16s ease, background .16s ease, opacity .16s ease;
+      opacity: 1;
+      pointer-events:auto;
+    }
+    .ytPrev{ left: 10px; }
+    .ytNext{ right: 10px; }
+
+    /* 常時表示なので hover で出す処理は廃止（focusは見えるように） */
+    .ytNav:focus-visible{
+      outline: 2px solid rgba(243,208,138,.55);
+      outline-offset: 2px;
+    }
+    .ytNav:hover{ filter: brightness(1.12); transform: translateY(-50%) scale(1.03); }
+    .ytNav:active{ transform: translateY(-50%) scale(.98); }
+    .ytNav:disabled{
+      opacity: .28;
+      cursor: default;
+      filter: none;
+      transform: translateY(-50%);
+    }
+
+    .ytCard{ position: relative; }
+    .ytCard.isActive{
+      outline: 1px solid rgba(243,208,138,.55);
+      outline-offset: 2px;
+    }
+    .ytCard.isActive::after{
+      content: "NOW";
+      position:absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 10px;
+      letter-spacing:.18em;
+      font-weight: 900;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(243,208,138,.14);
+      border: 1px solid rgba(243,208,138,.28);
+      color: rgba(243,208,138,.95);
+    }
+
+    /* ===== Afterword ===== */
+    .afterword{
+      background:
+        radial-gradient(900px 520px at 50% 0%, rgba(243,208,138,.06), transparent 60%),
+        linear-gradient(180deg, rgba(7,7,9,1), rgba(7,7,9,.985));
+    }
+    .para{
+      margin: 0 auto 14px;
+      max-width: 620px;
+      text-align:center;
+      font-size: 14px;
+      letter-spacing:.10em;
+      line-height: 2.0;
+      color: rgba(233,233,239,.78);
+    }
+
+    /* ===== motion reduce ===== */
+    @media (prefers-reduced-motion: reduce){
+      .bookmark{ transition:none !important; }
+      .turnArrow{ animation: none !important; }
+      .ytToc{ transition:none !important; }
+      .ytNav{ transition:none !important; }
+      .ytCard{ transition:none !important; }
     }
   </style>
 </BaseLayout>
