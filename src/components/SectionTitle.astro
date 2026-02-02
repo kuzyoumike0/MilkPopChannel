@@ -1,0 +1,9 @@
+---
+const { en, ja, color="pink" } = Astro.props;
+---
+<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:16px;">
+  <div>
+    <div class={`pill ${color}`} style="display:inline-flex; margin-bottom:8px;">{en}</div>
+    <div style="font-size:26px; font-weight:900; line-height:1.15;">{ja}</div>
+  </div>
+</div>
